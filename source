@@ -1,10 +1,9 @@
-player = game.Players.LocalPlayer
+local player = game.Players.LocalPlayer
 local userInput = game:GetService("UserInputService")
 local runService = game:GetService("RunService")
 
 -- Whitelist check
-local whitelist = {"totsnotaaltaccount45", "7992955106", "8036445383
-"} -- Replace with your username or UserId(s)
+local whitelist = {"totsnotaaltaccount45", "7992955106", "8036445383"} -- Replace with your username or UserId(s)
 
 local function isWhitelisted()
     for _, allowedUser in pairs(whitelist) do
@@ -13,6 +12,12 @@ local function isWhitelisted()
         end
     end
     return false
+end
+
+-- Kick if not whitelisted
+if not isWhitelisted() then
+    player:Kick("You're not whitelisted for this script XD")
+    return -- Stop the script if the player is not whitelisted
 end
 
 -- States
@@ -85,7 +90,7 @@ end
 -- Jitter Logic (Smooth Circle Motion)
 local function jitter()
     local angle = 0
-    local radius = 0.7 -- Radius of the circle (22 studs)
+    local radius = 22 -- Radius of the circle (22 studs)
     while jitterEnabled and player.Character and player.Character:FindFirstChild("HumanoidRootPart") do
         local rootPart = player.Character.HumanoidRootPart
         angle = angle + 0.1 -- Increment angle for smooth motion
@@ -474,10 +479,5 @@ local function createGUI()
     end)
 end
 
--- Check whitelist and create GUI
-player:WaitForChild("PlayerGui") -- Ensure PlayerGui is loaded
-if isWhitelisted() then
-    createGUI()
-else
-    player:Kick("You're not whitelisted for this script XD")
-end
+-- Create GUI (no whitelist check here, already handled at the start)
+createGUI()
