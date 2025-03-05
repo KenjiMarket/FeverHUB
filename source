@@ -90,7 +90,7 @@ end
 -- Jitter Logic (Smooth Circle Motion)
 local function jitter()
     local angle = 0
-    local radius = 22 -- Radius of the circle (22 studs)
+    local radius = 1.1 -- Radius of the circle (22 studs)
     while jitterEnabled and player.Character and player.Character:FindFirstChild("HumanoidRootPart") do
         local rootPart = player.Character.HumanoidRootPart
         angle = angle + 0.1 -- Increment angle for smooth motion
