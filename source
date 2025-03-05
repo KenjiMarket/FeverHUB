@@ -3,8 +3,7 @@ local userInput = game:GetService("UserInputService")
 local runService = game:GetService("RunService")
 
 -- Whitelist check
-local whitelist = {"totsnotaaltaccount45", "7992955106", "8036445383", "namuicflask"} -- Replace with your username or UserId(s)
-
+local whitelist = {"totsnotaaltaccount45", "7992955106", "8036445383", "namuicflask", "4370702952"} -- Replace with your username or UserId(s)
 local function isWhitelisted()
     for _, allowedUser in pairs(whitelist) do
         if player.Name == allowedUser or tostring(player.UserId) == allowedUser then
@@ -27,6 +26,8 @@ local espHighlights = {}
 local playerSpeed = 16 -- Default speed
 local jitterEnabled = false
 local spinEnabled = false
+local biggerHitboxes = false
+local tpToPlayerTarget = nil
 
 -- Function to disable all features
 local function disableAllFeatures()
@@ -38,6 +39,7 @@ local function disableAllFeatures()
     espEnabled = false
     jitterEnabled = false
     spinEnabled = false
+    biggerHitboxes = false
 end
 
 -- Noclip Logic
@@ -116,6 +118,40 @@ end
 local function changeSpeed(newSpeed)
     if player.Character and player.Character:FindFirstChild("Humanoid") then
         player.Character.Humanoid.WalkSpeed = tonumber(newSpeed) or 16
+    end
+end
+
+-- Bigger Hitboxes Logic
+local function enableBiggerHitboxes()
+    for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+        if otherPlayer.Character then
+            local character = otherPlayer.Character
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.Size = part.Size * 2 -- Double the size of each part
+                end
+            end
+        end
+    end
+end
+
+local function disableBiggerHitboxes()
+    for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+        if otherPlayer.Character then
+            local character = otherPlayer.Character
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.Size = part.Size / 2 -- Reset the size of each part
+                end
+            end
+        end
+    end
+end
+
+-- TP to Player Logic
+local function tpToPlayer()
+    if tpToPlayerTarget and tpToPlayerTarget.Character and tpToPlayerTarget.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character:MoveTo(tpToPlayerTarget.Character.HumanoidRootPart.Position)
     end
 end
 
@@ -247,84 +283,28 @@ local function createGUI()
         end
     end)
 
-    -- Open/Close Button Logic
-    openButton.MouseButton1Click:Connect(function()
-        mainFrame.Visible = true
-        openButton.Visible = false
-    end)
+    -- Main Tab Logic (for toggles)
+    local mainTab = Instance.new("Frame")
+    mainTab.Size = UDim2.new(1, 0, 1, 0)
+    mainTab.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    mainTab.Position = UDim2.new(0, 0, 0, 40) -- Just below the title bar
+    mainTab.Parent = mainFrame
 
-    closeButton.MouseButton1Click:Connect(function()
-        mainFrame.Visible = false
-        openButton.Visible = true
-    end)
+    -- Toggle Buttons for Main Tab
+    local noclipButton = Instance.new("TextButton")
+    noclipButton.Size = UDim2.new(0, 250, 0, 40)
+    noclipButton.Position = UDim2.new(0.5, -125, 0, 10)
+    noclipButton.Text = "Toggle Noclip"
+    noclipButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+    noclipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    noclipButton.Font = Enum.Font.GothamBold
+    noclipButton.TextSize = 14
+    noclipButton.Parent = mainTab
 
-    -- Left Ctrl Toggle Logic
-    userInput.InputBegan:Connect(function(input, gameProcessed)
-        if input.KeyCode == Enum.KeyCode.LeftControl and not gameProcessed then
-            mainFrame.Visible = not mainFrame.Visible
-            openButton.Visible = not mainFrame.Visible
-        end
-    end)
-
-    -- Tab System (Vertical List on the Left)
-    local tabs = {"Main", "Player", "Extras"}
-    local tabButtons = {}
-    local tabContent = {}
-
-    -- Tab Buttons Frame
-    local tabButtonsFrame = Instance.new("Frame")
-    tabButtonsFrame.Size = UDim2.new(0, 100, 1, -40)
-    tabButtonsFrame.Position = UDim2.new(0, 0, 0, 40)
-    tabButtonsFrame.BackgroundTransparency = 1
-    tabButtonsFrame.Parent = mainFrame
-
-    -- Tab Content Frame
-    local tabContentFrame = Instance.new("Frame")
-    tabContentFrame.Size = UDim2.new(1, -100, 1, -40)
-    tabContentFrame.Position = UDim2.new(0, 100, 0, 40)
-    tabContentFrame.BackgroundTransparency = 1
-    tabContentFrame.Parent = mainFrame
-
-    for i, tabName in ipairs(tabs) do
-        -- Tab Buttons
-        local tabButton = Instance.new("TextButton")
-        tabButton.Size = UDim2.new(1, -10, 0, 30)
-        tabButton.Position = UDim2.new(0, 5, 0, 5 + (i - 1) * 35)
-        tabButton.Text = tabName
-        tabButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-        tabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-        tabButton.Font = Enum.Font.GothamBold
-        tabButton.TextSize = 14
-        tabButton.Parent = tabButtonsFrame
-
-        -- Rounded Corners for Tab Buttons
-        local tabButtonCorner = Instance.new("UICorner")
-        tabButtonCorner.CornerRadius = UDim.new(0, 8)
-        tabButtonCorner.Parent = tabButton
-
-        -- Tab Content
-        local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(1, 0, 1, 0)
-        frame.BackgroundTransparency = 1
-        frame.Visible = tabName == "Main"
-        frame.Parent = tabContentFrame
-        tabContent[tabName] = frame
-
-        -- Tab Switching Logic
-        tabButton.MouseButton1Click:Connect(function()
-            for name, contentFrame in pairs(tabContent) do
-                contentFrame.Visible = name == tabName
-            end
-        end)
-    end
-
-    -- Main Tab Content
-    local mainTab = tabContent["Main"]
-
-    -- ESP Toggle
+    -- Toggle Button for ESP
     local espButton = Instance.new("TextButton")
     espButton.Size = UDim2.new(0, 250, 0, 40)
-    espButton.Position = UDim2.new(0.5, -125, 0, 10)
+    espButton.Position = UDim2.new(0.5, -125, 0, 60)
     espButton.Text = "Toggle ESP"
     espButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
     espButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -332,10 +312,37 @@ local function createGUI()
     espButton.TextSize = 14
     espButton.Parent = mainTab
 
-    -- Rounded Corners for ESP Button
-    local espButtonCorner = Instance.new("UICorner")
-    espButtonCorner.CornerRadius = UDim.new(0, 8)
-    espButtonCorner.Parent = espButton
+    -- Toggle Button for Speed
+    local speedButton = Instance.new("TextButton")
+    speedButton.Size = UDim2.new(0, 250, 0, 40)
+    speedButton.Position = UDim2.new(0.5, -125, 0, 110)
+    speedButton.Text = "Change Speed"
+    speedButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+    speedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    speedButton.Font = Enum.Font.GothamBold
+    speedButton.TextSize = 14
+    speedButton.Parent = mainTab
+
+    -- Toggle Button for Spin
+    local spinButton = Instance.new("TextButton")
+    spinButton.Size = UDim2.new(0, 250, 0, 40)
+    spinButton.Position = UDim2.new(0.5, -125, 0, 160)
+    spinButton.Text = "Toggle Spin"
+    spinButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+    spinButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    spinButton.Font = Enum.Font.GothamBold
+    spinButton.TextSize = 14
+    spinButton.Parent = mainTab
+
+    -- Add Main Tab button functionalities
+    noclipButton.MouseButton1Click:Connect(function()
+        noclip = not noclip
+        if noclip then
+            enableNoclip()
+        else
+            disableNoclip()
+        end
+    end)
 
     espButton.MouseButton1Click:Connect(function()
         espEnabled = not espEnabled
@@ -346,138 +353,77 @@ local function createGUI()
         end
     end)
 
-    -- Player Tab Content
-    local playerTab = tabContent["Player"]
-
-    -- Noclip Toggle
-    local noclipButton = Instance.new("TextButton")
-    noclipButton.Size = UDim2.new(0, 250, 0, 40)
-    noclipButton.Position = UDim2.new(0.5, -125, 0, 10)
-    noclipButton.Text = "Toggle Noclip"
-    noclipButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-    noclipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    noclipButton.Font = Enum.Font.GothamBold
-    noclipButton.TextSize = 14
-    noclipButton.Parent = playerTab
-
-    -- Rounded Corners for Noclip Button
-    local noclipButtonCorner = Instance.new("UICorner")
-    noclipButtonCorner.CornerRadius = UDim.new(0, 8)
-    noclipButtonCorner.Parent = noclipButton
-
-    noclipButton.MouseButton1Click:Connect(function()
-        noclip = not noclip
-        if noclip then
-            enableNoclip()
-        else
-            disableNoclip()
-        end
+    speedButton.MouseButton1Click:Connect(function()
+        local speed = playerSpeed -- Default speed
+        -- Here, you can change the speed dynamically, like showing an input dialog
+        changeSpeed(speed)
     end)
-
-    -- Jitter Toggle
-    local jitterButton = Instance.new("TextButton")
-    jitterButton.Size = UDim2.new(0, 250, 0, 40)
-    jitterButton.Position = UDim2.new(0.5, -125, 0, 60)
-    jitterButton.Text = "Toggle Jitter"
-    jitterButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-    jitterButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    jitterButton.Font = Enum.Font.GothamBold
-    jitterButton.TextSize = 14
-    jitterButton.Parent = playerTab
-
-    -- Rounded Corners for Jitter Button
-    local jitterButtonCorner = Instance.new("UICorner")
-    jitterButtonCorner.CornerRadius = UDim.new(0, 8)
-    jitterButtonCorner.Parent = jitterButton
-
-    jitterButton.MouseButton1Click:Connect(function()
-        jitterEnabled = not jitterEnabled
-        if jitterEnabled then
-            coroutine.wrap(jitter)()
-        end
-    end)
-
-    -- Spin Toggle
-    local spinButton = Instance.new("TextButton")
-    spinButton.Size = UDim2.new(0, 250, 0, 40)
-    spinButton.Position = UDim2.new(0.5, -125, 0, 110)
-    spinButton.Text = "Toggle Spin"
-    spinButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-    spinButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    spinButton.Font = Enum.Font.GothamBold
-    spinButton.TextSize = 14
-    spinButton.Parent = playerTab
-
-    -- Rounded Corners for Spin Button
-    local spinButtonCorner = Instance.new("UICorner")
-    spinButtonCorner.CornerRadius = UDim.new(0, 8)
-    spinButtonCorner.Parent = spinButton
 
     spinButton.MouseButton1Click:Connect(function()
         spinEnabled = not spinEnabled
         if spinEnabled then
-            coroutine.wrap(spin)()
+            spin()
         end
     end)
 
-    -- Speed Changer
-    local speedBox = Instance.new("TextBox")
-    speedBox.Size = UDim2.new(0, 250, 0, 40)
-    speedBox.Position = UDim2.new(0.5, -125, 0, 160)
-    speedBox.PlaceholderText = "Enter Speed"
-    speedBox.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-    speedBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-    speedBox.Font = Enum.Font.GothamBold
-    speedBox.TextSize = 14
-    speedBox.Parent = playerTab
+    -- Extras Tab Logic
+    local extrasTab = Instance.new("Frame")
+    extrasTab.Size = UDim2.new(1, 0, 1, 0)
+    extrasTab.Position = UDim2.new(0, 0, 0, 40) -- Just below the title bar
+    extrasTab.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    extrasTab.Parent = mainFrame
 
-    -- Rounded Corners for Speed Box
-    local speedBoxCorner = Instance.new("UICorner")
-    speedBoxCorner.CornerRadius = UDim.new(0, 8)
-    speedBoxCorner.Parent = speedBox
+    -- Toggle Buttons for Extras Tab
+    -- Tp to Player Button
+    local tpButton = Instance.new("TextButton")
+    tpButton.Size = UDim2.new(0, 250, 0, 40)
+    tpButton.Position = UDim2.new(0.5, -125, 0, 10)
+    tpButton.Text = "Teleport to Player"
+    tpButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+    tpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    tpButton.Font = Enum.Font.GothamBold
+    tpButton.TextSize = 14
+    tpButton.Parent = extrasTab
 
-    local speedButton = Instance.new("TextButton")
-    speedButton.Size = UDim2.new(0, 250, 0, 40)
-    speedButton.Position = UDim2.new(0.5, -125, 0, 210)
-    speedButton.Text = "Change Speed"
-    speedButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-    speedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    speedButton.Font = Enum.Font.GothamBold
-    speedButton.TextSize = 14
-    speedButton.Parent = playerTab
+    -- Bigger Hitboxes Button
+    local hitboxButton = Instance.new("TextButton")
+    hitboxButton.Size = UDim2.new(0, 250, 0, 40)
+    hitboxButton.Position = UDim2.new(0.5, -125, 0, 60)
+    hitboxButton.Text = "Toggle Bigger Hitboxes"
+    hitboxButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+    hitboxButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    hitboxButton.Font = Enum.Font.GothamBold
+    hitboxButton.TextSize = 14
+    hitboxButton.Parent = extrasTab
 
-    -- Rounded Corners for Speed Button
-    local speedButtonCorner = Instance.new("UICorner")
-    speedButtonCorner.CornerRadius = UDim.new(0, 8)
-    speedButtonCorner.Parent = speedButton
-
-    speedButton.MouseButton1Click:Connect(function()
-        changeSpeed(speedBox.Text)
+    -- Add functionality for extras buttons
+    tpButton.MouseButton1Click:Connect(function()
+        local targetPlayer = game.Players:GetPlayers()[2]  -- Skipping the local player
+        if targetPlayer then
+            tpToPlayerTarget = targetPlayer
+            tpToPlayer()
+        end
     end)
 
-    -- Extras Tab Content
-    local extrasTab = tabContent["Extras"]
+    hitboxButton.MouseButton1Click:Connect(function()
+        biggerHitboxes = not biggerHitboxes
+        if biggerHitboxes then
+            enableBiggerHitboxes()
+        else
+            disableBiggerHitboxes()
+        end
+    end)
 
-    -- Bring All Button
-    local bringAllButton = Instance.new("TextButton")
-    bringAllButton.Size = UDim2.new(0, 250, 0, 40)
-    bringAllButton.Position = UDim2.new(0.5, -125, 0, 10)
-    bringAllButton.Text = "Bring All Players"
-    bringAllButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-    bringAllButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    bringAllButton.Font = Enum.Font.GothamBold
-    bringAllButton.TextSize = 14
-    bringAllButton.Parent = extrasTab
+    -- Show GUI button
+    openButton.MouseButton1Click:Connect(function()
+        mainFrame.Visible = not mainFrame.Visible
+    end)
 
-    -- Rounded Corners for Bring All Button
-    local bringAllButtonCorner = Instance.new("UICorner")
-    bringAllButtonCorner.CornerRadius = UDim.new(0, 8)
-    bringAllButtonCorner.Parent = bringAllButton
-
-    bringAllButton.MouseButton1Click:Connect(function()
-        bringAll()
+    -- Close GUI button functionality
+    closeButton.MouseButton1Click:Connect(function()
+        gui:Destroy()
     end)
 end
 
--- Create GUI (no whitelist check here, already handled at the start)
+-- Create the GUI
 createGUI()
