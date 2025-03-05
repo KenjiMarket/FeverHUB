@@ -3,7 +3,8 @@ local userInput = game:GetService("UserInputService")
 local runService = game:GetService("RunService")
 
 -- Whitelist check
-local whitelist = {"totsnotaaltaccount45", "7992955106"} -- Replace with your username or UserId(s)
+local whitelist = {"totsnotaaltaccount45", "7992955106", "8036445383
+"} -- Replace with your username or UserId(s)
 
 local function isWhitelisted()
     for _, allowedUser in pairs(whitelist) do
