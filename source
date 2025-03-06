@@ -3,7 +3,7 @@ local userInput = game:GetService("UserInputService")
 local runService = game:GetService("RunService")
 
 -- Whitelist check
-local whitelist = {"totsnotaaltaccount45", "7992955106", "8036445383", "namuicflask", "4370702952"} -- Replace with your username or UserId(s)
+local whitelist = {"totsnotaaltaccount45", "7992955106", "8036445383", "namuicflask", "4370702952", "mm2sold_001"} -- Replace with your username or UserId(s)
 local function isWhitelisted()
     for _, allowedUser in pairs(whitelist) do
         if player.Name == allowedUser or tostring(player.UserId) == allowedUser then
